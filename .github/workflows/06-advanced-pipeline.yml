@@ -1,0 +1,81 @@
+name: 06 - Advanced Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+
+jobs:
+  matrix-build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [16, 18, 20]
+        python-version: ['3.8', '3.9', '3.10']
+      fail-fast: false
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Run cross-platform tests
+      run: |
+        echo "Testing on ${{ matrix.os }} with Node.js ${{ matrix.node-version }} and Python ${{ matrix.python-version }}"
+        python src/hello.py
+        node src/app.js
+        
+  conditional-job:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run only on push/PR
+      run: |
+        echo "This job runs only on push or pull request events"
+        echo "Event: ${{ github.event_name }}"
+        
+  parallel-jobs:
+    runs-on: ubuntu-latest
+    needs: matrix-build
+    strategy:
+      matrix:
+        service: [api, frontend, database]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy ${{ matrix.service }}
+      run: |
+        echo "Deploying ${{ matrix.service }} service"
+        sleep 10  # Simulate deployment time
+        echo "${{ matrix.service }} deployed successfully"
+        
+  final-step:
+    runs-on: ubuntu-latest
+    needs: [matrix-build, parallel-jobs]
+    if: always()
+    
+    steps:
+    - name: Pipeline summary
+      run: |
+        echo "🎉 Advanced pipeline completed!"
+        echo "Matrix build result: ${{ needs.matrix-build.result }}"
+        echo "Parallel jobs result: ${{ needs.parallel-jobs.result }}"

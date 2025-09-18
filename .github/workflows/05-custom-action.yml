@@ -1,0 +1,47 @@
+name: 05 - Custom Action Usage
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  use-reusable-workflow:
+    uses: ./.github/workflows/04-reusable.yml
+    with:
+      environment: development
+      node-version: '18'
+      python-version: '3.9'
+      
+  use-custom-action:
+    runs-on: ubuntu-latest
+    needs: use-reusable-workflow
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Use local custom action
+      uses: ./src/custom-action
+      with:
+        greeting: 'Hello from GitHub Actions Lab!'
+        name: 'Developer'
+        
+    - name: Display reusable workflow result
+      run: |
+        echo "Reusable workflow build status: ${{ needs.use-reusable-workflow.outputs.build-status }}"
+        
+    - name: Use third-party action
+      uses: actions/github-script@v6
+      with:
+        script: |
+          console.log('Running custom JavaScript in GitHub Actions');
+          console.log('Repository:', context.repo.repo);
+          console.log('Owner:', context.repo.owner);
+          
+          // Create a simple output
+          core.setOutput('custom-result', 'Custom action executed successfully!');
+          
+    - name: Display custom action result
+      run: |
+        echo "Custom action completed successfully!"

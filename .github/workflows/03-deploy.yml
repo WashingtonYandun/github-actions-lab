@@ -1,0 +1,60 @@
+name: 03 - Deploy to Environments
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set environment variables
+      run: |
+        if [ "${{ github.event.inputs.environment || 'staging' }}" = "production" ]; then
+          echo "API_URL=https://api.prod.example.com" >> $GITHUB_ENV
+          echo "DB_HOST=prod-db.example.com" >> $GITHUB_ENV
+        else
+          echo "API_URL=https://api.staging.example.com" >> $GITHUB_ENV
+          echo "DB_HOST=staging-db.example.com" >> $GITHUB_ENV
+        fi
+        
+    - name: Build application
+      run: |
+        echo "Building for environment: ${{ github.event.inputs.environment || 'staging' }}"
+        echo "API URL: $API_URL"
+        mkdir -p dist
+        cp src/* dist/ 2>/dev/null || true
+        
+    - name: Deploy to staging
+      if: ${{ github.event.inputs.environment != 'production' }}
+      run: |
+        echo "🚀 Deploying to STAGING environment"
+        echo "Deploy URL: https://staging.example.com"
+        echo "Deployment completed at $(date)"
+        
+    - name: Deploy to production
+      if: ${{ github.event.inputs.environment == 'production' }}
+      run: |
+        echo "🚀 Deploying to PRODUCTION environment"
+        echo "Deploy URL: https://example.com"
+        echo "Production deployment completed at $(date)"
+        
+    - name: Health check
+      run: |
+        echo "✅ Health check passed for ${{ github.event.inputs.environment || 'staging' }}"
+        echo "Application is running successfully"

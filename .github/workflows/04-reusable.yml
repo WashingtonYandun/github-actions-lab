@@ -1,0 +1,60 @@
+name: 04 - Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      node-version:
+        required: false
+        type: string
+        default: '18'
+      python-version:
+        required: false
+        type: string
+        default: '3.9'
+    outputs:
+      build-status:
+        description: "Build status result"
+        value: ${{ jobs.build.outputs.status }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.build-step.outputs.status }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        echo "Installing dependencies for ${{ inputs.environment }} environment"
+        python -m pip install --upgrade pip
+        npm --version
+        
+    - name: Build application
+      id: build-step
+      run: |
+        echo "Building for environment: ${{ inputs.environment }}"
+        mkdir -p build
+        cp src/* build/ 2>/dev/null || true
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Run tests
+      run: |
+        echo "Running tests for ${{ inputs.environment }}"
+        python src/hello.py
+        node src/app.js
