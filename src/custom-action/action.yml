@@ -1,0 +1,30 @@
+name: 'Custom Greeting Action'
+description: 'A simple custom action that greets users and demonstrates action development'
+author: 'GitHub Actions Lab'
+
+inputs:
+  greeting:
+    description: 'The greeting message to display'
+    required: false
+    default: 'Hello'
+  name:
+    description: 'The name of the person to greet'
+    required: true
+  color:
+    description: 'Color for the output (red, green, blue, yellow, magenta, cyan)'
+    required: false
+    default: 'green'
+
+outputs:
+  message:
+    description: 'The greeting message that was generated'
+  timestamp:
+    description: 'When the greeting was generated'
+
+runs:
+  using: 'node16'
+  main: 'index.js'
+
+branding:
+  icon: 'heart'
+  color: 'purple'

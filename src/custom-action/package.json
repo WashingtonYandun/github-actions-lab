@@ -1,0 +1,20 @@
+{
+  "name": "custom-greeting-action",
+  "version": "1.0.0",
+  "description": "A simple custom GitHub Action that greets users",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "github-actions",
+    "custom-action",
+    "greeting",
+    "demo"
+  ],
+  "author": "GitHub Actions Lab",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.10.0"
+  }
+}
